@@ -2,9 +2,12 @@ import geocoder
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.conf import settings
 
 
-mapbox_access_token = ''
+mapbox_access_token = getattr(settings, "MAPBOX_ACCESS_TOKEN", None)
 
 # Create your models here.
 class AppUsers(models.Model):
@@ -16,7 +19,7 @@ class AppUsers(models.Model):
     long = models.FloatField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        g = geocoder.mapbox(self.address, key=mapbox_access_token)
+        g = geocoder.mapbox(self.home_address, key=mapbox_access_token)
         g = g.latlng  # returns => [lat, long]
         self.lat = g[0]
         self.long = g[1]

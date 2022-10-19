@@ -3,9 +3,11 @@ from django.views.generic.edit import CreateView
 from django.contrib.auth import (authenticate, get_user_model, login, logout,
                                  update_session_auth_hash)
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.conf import settings
 
 from .models import AppUsers
 from .forms import LoginForm, UpdateUserForm ,UpdateAppUserForm
@@ -34,17 +36,17 @@ def login_page(request):
 def logout_page(request):
     logout(request)
 
-    return home_page(request)
+    return redirect('home')
     
-@login_required
-def home_page(request):
+# @login_required
+# def home_page(request):
     
-    return render(request, "userportfolio/home.html", context={})
+#     return render(request, "userportfolio/home.html", context={})
 
 @login_required
 def view_details(request):
     if request.method == 'POST':
-        return home_page(request)
+        return redirect('home')
     
     current_user = request.user
     user_details = request.user.appusers
@@ -71,14 +73,17 @@ def details_page(request):
     context = {'user': current_user, 'user_form': user_form, 'profile_form': profile_form}
     return render(request, 'userportfolio/edit_details.html', context)
 
-class UserView(CreateView):
+@method_decorator(login_required, name='dispatch')
+class home_page(CreateView):
 
     model = AppUsers
-    fields = ['']
-    template_name = ''
+    fields = ['home_address']
+    template_name = 'userportfolio/home.html'
     success_url = '/'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['mapbox_access_token'] = getattr(settings, "MAPBOX_ACCESS_TOKEN", None)
         context['users'] = AppUsers.objects.all()
+        context['current_user'] = self.request.user
         return context

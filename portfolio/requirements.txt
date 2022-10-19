@@ -1,9 +1,9 @@
-asgiref==3.3.1
+asgiref==3.3.2
 certifi==2020.12.5
 chardet==4.0.0
 click==7.1.2
 decorator==4.4.2
-Django==3.1.7
+Django==3.2.16
 future==0.18.2
 geocoder==1.38.1
 idna==2.10
@@ -13,3 +13,4 @@ requests==2.25.1
 six==1.15.0
 sqlparse==0.4.1
 urllib3==1.26.3
+django-bootstrap5

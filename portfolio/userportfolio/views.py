@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 
 from .models import AppUsers
-from .forms import LoginForm
+from .forms import LoginForm, UpdateUserForm ,UpdateAppUserForm
 
 
 @csrf_exempt
@@ -22,6 +22,7 @@ def login_page(request):
             user = authenticate(username=username, password=password)
             if 'login' in request.POST:
                 if user is not None:
+                    login(request, user)
                     request.session['session'] = user.pk
                     return redirect('home')
         else:
@@ -30,11 +31,45 @@ def login_page(request):
 
     form = LoginForm()
     return render(request, "registration/login.html", context={"form":form,})
+def logout_page(request):
+    logout(request)
 
+    return home_page(request)
+    
+@login_required
 def home_page(request):
     
     return render(request, "userportfolio/home.html", context={})
+
+@login_required
+def view_details(request):
+    if request.method == 'POST':
+        return home_page(request)
     
+    current_user = request.user
+    user_details = request.user.appusers
+    context = {'user': current_user, 'user_details':user_details}
+    
+    return render(request, 'userportfolio/view_details.html', context)
+
+@login_required      
+def details_page(request):
+    current_user = request.user
+    
+    if request.method == 'POST':
+        user_form = UpdateUserForm(request.POST, instance=request.user)
+        profile_form = UpdateAppUserForm(request.POST, instance=request.user.appusers)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Your profile is updated successfully')
+            return redirect(to='home')
+    
+    user_form = UpdateUserForm(instance=request.user)
+    profile_form = UpdateAppUserForm(instance=request.user.appusers)
+    context = {'user': current_user, 'user_form': user_form, 'profile_form': profile_form}
+    return render(request, 'userportfolio/edit_details.html', context)
 
 class UserView(CreateView):
 
